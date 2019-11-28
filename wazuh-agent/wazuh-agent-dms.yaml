@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wazuh-agent
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-agent
+  # serviceName: wazuh-cluster, this line is from wazuh-manager, not sure if useful here
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: wazuh-agent
+        # node-type: master
+      name: wazuh-agent
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: wazuh-agent-conf
+      containers:
+        - name: wazuh-manager
+          image: 'hbcwl/wazuh-agent:3.9.0-0.0.1'
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /var/ossec/etc/ossec.conf
+              subPath: ossec.conf
+              readOnly: true
+          # ports:
+          #   - containerPort: 1515
+          #     name: registration
+          #   - containerPort: 1516
+          #     name: cluster
+          #   - containerPort: 55000
+          #     name: api
+  # volumeClaimTemplates:
+  #   - metadata:
+  #       name: wazuh-manager-master
+  #       namespace: wazuh
+  #     spec:
+  #       accessModes:
+  #         - ReadWriteOnce
+  #       storageClassName: gce-pd-encrypted-retained
+  #       resources:
+  #         requests:
+  #           storage: 50Gi
