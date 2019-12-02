@@ -4,12 +4,12 @@ metadata:
   name: wazuh-agent
   namespace: wazuh
 spec:
-  replicas: 1
+  # replicas: 1
   selector:
     matchLabels:
       app: wazuh-agent
   # serviceName: wazuh-cluster, this line is from wazuh-manager, not sure if useful here
-  podManagementPolicy: Parallel
+  # podManagementPolicy: Parallel
   template:
     metadata:
       labels:
@@ -17,13 +17,13 @@ spec:
         # node-type: master
       name: wazuh-agent
     spec:
-      volumes:
-        - name: config
-          configMap:
-            name: wazuh-agent-conf
+      # volumes:
+      #   - name: config
+      #     configMap:
+      #       name: wazuh-agent-conf
       containers:
-        - name: wazuh-manager
-          image: 'hbcwl/wazuh-agent:3.9.0-0.0.1'
+        - name: wazuh-agent
+          image: 'hbcwl/wazuh-agent:3.10.2-0.0.4'
           resources:
             requests:
               cpu: 500m
@@ -32,25 +32,18 @@ spec:
               cpu: 1
               memory: 512Mi
           volumeMounts:
-            - name: config
-              mountPath: /var/ossec/etc/ossec.conf
-              subPath: ossec.conf
-              readOnly: true
-          # ports:
-          #   - containerPort: 1515
-          #     name: registration
-          #   - containerPort: 1516
-          #     name: cluster
-          #   - containerPort: 55000
-          #     name: api
-  # volumeClaimTemplates:
-  #   - metadata:
-  #       name: wazuh-manager-master
-  #       namespace: wazuh
-  #     spec:
-  #       accessModes:
-  #         - ReadWriteOnce
-  #       storageClassName: gce-pd-encrypted-retained
-  #       resources:
-  #         requests:
-  #           storage: 50Gi
+            # - name: config
+            #   mountPath: /wazuh-config-mount/etc/ossec.conf
+            #   subPath: ossec.conf
+            #   readOnly: true
+            - name: wazuh-agent
+              mountPath: /entrypoint-scripts
+      volumes:
+      - name: wazuh-agent
+        persistentVolumeClaim: 
+          claimName: wazuh-agent
+        # hostPath:
+        #   path: /var/ossec/
+      # - name: varlibdockercontainers
+      #   hostPath:
+      #     path: /var/lib/docker/containers
