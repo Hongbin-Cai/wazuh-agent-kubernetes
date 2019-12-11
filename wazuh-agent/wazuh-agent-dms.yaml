@@ -4,23 +4,18 @@ metadata:
   name: wazuh-agent
   namespace: wazuh
 spec:
-  # replicas: 1
   selector:
     matchLabels:
       app: wazuh-agent
-  # serviceName: wazuh-cluster, this line is from wazuh-manager, not sure if useful here
-  # podManagementPolicy: Parallel
+  privileged: true # SUBJECT TO OMITTED, ask TDR later.
   template:
     metadata:
       labels:
         app: wazuh-agent
-        # node-type: master
       name: wazuh-agent
     spec:
-      # volumes:
-      #   - name: config
-      #     configMap:
-      #       name: wazuh-agent-conf
+      hostPID: true
+      hostIPC: true
       containers:
         - name: wazuh-agent
           image: 'hbcwl/wazuh-agent:3.10.2-0.0.4'
@@ -32,18 +27,11 @@ spec:
               cpu: 1
               memory: 512Mi
           volumeMounts:
-            # - name: config
-            #   mountPath: /wazuh-config-mount/etc/ossec.conf
-            #   subPath: ossec.conf
-            #   readOnly: true
+            # Mount a volume for docker script running
+            # since the path under rootpath in COS is not runable
             - name: wazuh-agent
               mountPath: /entrypoint-scripts
       volumes:
       - name: wazuh-agent
         persistentVolumeClaim: 
           claimName: wazuh-agent
-        # hostPath:
-        #   path: /var/ossec/
-      # - name: varlibdockercontainers
-      #   hostPath:
-      #     path: /var/lib/docker/containers
