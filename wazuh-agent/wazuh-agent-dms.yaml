@@ -7,7 +7,6 @@ spec:
   selector:
     matchLabels:
       app: wazuh-agent
-  privileged: true # SUBJECT TO OMITTED, ask TDR later.
   template:
     metadata:
       labels:
@@ -16,9 +15,19 @@ spec:
     spec:
       hostPID: true
       hostIPC: true
+      volumes:
+      - name: wazuh-agent
+        persistentVolumeClaim: 
+          claimName: wazuh-agent
+      - name: wazuh-agent-conf-volume
+        configMap: 
+          name: wazuh-agent-conf
+      - name: host-os-release
+        hostPath:
+          path: /etc/os-release
       containers:
         - name: wazuh-agent
-          image: 'hbcwl/wazuh-agent:3.10.2-0.0.4'
+          image: 'hbcwl/wazuh-agent:3.10.2-0.0.6'
           resources:
             requests:
               cpu: 500m
@@ -31,7 +40,10 @@ spec:
             # since the path under rootpath in COS is not runable
             - name: wazuh-agent
               mountPath: /entrypoint-scripts
-      volumes:
-      - name: wazuh-agent
-        persistentVolumeClaim: 
-          claimName: wazuh-agent
+            - name: wazuh-agent-conf-volume
+              mountPath: /var/ossec/etc/ossec.conf
+              subPath: ossec.conf
+              readOnly: true
+            - name: host-os-release
+              mountPath: /etc/os-release
+              readOnly: true
